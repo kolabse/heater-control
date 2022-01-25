@@ -22,29 +22,7 @@
 #include <LiquidCrystal_I2C.h>
 #include <KolabseCarsCan.h>                   // https://github.com/kolabse/KolabseCarsCan
 #include "heater.h"
-
-// Назначение пинов и адресов
-const int heaterKey1    {4};          // Пин подключения реле нагревателя №1
-const int lcdSwitch     {5};          // Пин переключателя наличия LCD дисплея
-const int heaterSwitch  {6};          // Пин переключателя наличия нагревателя
-const int heaterKey2    {7};          // Пин подключения реле нагревателя №2
-const int heaterKey3    {8};          // Пин подключения реле нагревателя №3
-const int debugSwitch   {9};          // Пин переключателя включения режима отправки отладочной информации в COM-порт
-const int mcpScPin      {10};
-const int lcdI2CAddr    {0x3F};
-
-// Установка значений по умолчанию
-const int startValue    {-99};
-
-// Объявление переменных и значений по умолчанию для них
-uint32_t secAfterStartWhenLcdLastUpdate {0};                      // Время в секундах после того как последний раз были обновлены показания экрана
-uint32_t SecAfterStartWhenLastCanMessageReceived {startValue};    // Время в секундах после того как было получено последнее сообщение из шины
-
-bool logoIsActive   {true};                                         // Заставка активна
-bool needToHeat     {false};                                          // Необходимость в дополнительном нагреве
-bool LCDEnabled     {false};
-bool HeaterEnabled  {false};
-bool DebugMode      {false};
+#include "config.h"
 
 // LCD дисплей
 LiquidCrystal_I2C lcd(lcdI2CAddr, 16, 2); // (адрес - определен через i2c_scanner, размеры дисплея)
@@ -83,7 +61,7 @@ void setup() {
   lcd.print("v0.04b loading...");
 
   // Устанавливаем частоту аппаратного прерывания с частотой 0.20 Hz (1 раз в 5 секунд) для таймера 1
-  Timer1.setFrequencyFloat(0.20);
+  Timer1.setFrequencyFloat(systemCheckFrequency);
   // Запускаем таймер 1 аппаратного прерывания на канале "A" (порт D9)
   Timer1.enableISR(CHANNEL_A);
 
@@ -92,7 +70,7 @@ void setup() {
 
     if(DebugMode) {
     // Запускаем интерфейс COM-порта
-    Serial.begin(115200);
+    Serial.begin(serialBaudRate);
 
     Serial.print("LCDEnabled: ");
     Serial.println(LCDEnabled);
@@ -108,66 +86,37 @@ void setup() {
 ISR(TIMER1_A) {
 
   // Проверяем достаточно ли прошло времени с момента запуска двигателя
-  if (car.getSecAfterStart() > 20) {
+  if (car.getSecAfterStart() > secAfterStartBeforeHeaterEnabled) {
     // Запускаем функции обработки значений полученных из шины
     // Проверяем полученны ли все необходимые данные
-    if (
-      car.getCoolantTemp() != startValue
-      && car.getOutdoorTemp() != startValue
-      && car.getBatteryVoltage() != startValue
-      && car.getClimateFanSpeed() != startValue
-      && car.getClimateLeftTemp() != startValue
-      && car.getClimateRightTemp() != startValue
-    ) {
+    if (isAllNecessaryDataReceived()) {
       // Проверяем обязательные требования
-      if (
-        car.getClimateFanSpeed() >= 3
-        && car.getBatteryVoltage() >= 13.5
-        && car.getClimateLeftTemp() >= 5
-        && car.getClimateRightTemp() >= 5
-      ) {
+      if (isCarReady()) {
         if (
           // Если подогрев выключен, проверяем не находимся ли мы в условиях подходящих для включения
           needToHeat == false
           &&
-          (
-            car.getOutdoorTemp() <= -20 && car.getCoolantTemp() < 65
-            || car.getOutdoorTemp() <= -10 && car.getCoolantTemp() < 60
-            || car.getOutdoorTemp() <=   0 && car.getCoolantTemp() < 55
-            || car.getOutdoorTemp() <=  10 && car.getCoolantTemp() < 50
-          )
+          (isHeaterMustBeOn())
         ) {
           needToHeat = true;
         } else if (
           // Если подогрев включен, проверяем не находимся ли мы в условиях подходящих для отключения
           needToHeat
           &&
-          (
-            car.getOutdoorTemp() <= -20 && car.getCoolantTemp() >= 80
-            || car.getOutdoorTemp() <= -10 && car.getCoolantTemp() >= 75
-            || car.getOutdoorTemp() <=   0 && car.getCoolantTemp() >= 70
-            || car.getOutdoorTemp() <=  10 && car.getCoolantTemp() >= 65
-          )
+          (isHeaterMustBeOff())
         ) {
           needToHeat = false;
         }
       } else if (
         needToHeat == false
         &&
-        (
-          car.getBlowingWindshield() == true
-          && car.getClimateLeftTemp() > 16
-          && car.getClimateRightTemp() > 16
-          && car.getClimateFanSpeed() >= 3
-          && car.getRecyclingAir() == false
-        )
+        (isClimateInDefrostMode())
       ) {
         needToHeat = true;
       } else {
         needToHeat = false;
       }
       // Запускаем функции для определения необходимости управления нагревателем
-
       heater.needToHeat(car, needToHeat);
     }
   }
@@ -177,14 +126,14 @@ void loop() {
 
   car.setSecAfterStart(getSecAfterStart());
 
-  if (logoIsActive and car.getSecAfterStart() > 4) {
+  if (logoIsActive and car.getSecAfterStart() > startlogoActiveSec) {
     logoIsActive = false;
     lcd.clear();
   }
 
   if (mcp2515.readMessage(&canMsg) == MCP2515::ERROR_OK) {
 
-    SecAfterStartWhenLastCanMessageReceived = car.getSecAfterStart();
+    secAfterStartWhenLastCanMessageReceived = car.getSecAfterStart();
     if (!logoIsActive) {
       lcd.setCursor(10, 1);
       lcd.print("(V)");
@@ -265,7 +214,7 @@ void loop() {
     }
   }
 
-  if (car.getSecAfterStart() - secAfterStartWhenLcdLastUpdate > 5) {
+  if (car.getSecAfterStart() - secAfterStartWhenLcdLastUpdate > lcdUpdateIntervalSec) {
 
     secAfterStartWhenLcdLastUpdate = car.getSecAfterStart();
 
@@ -304,13 +253,53 @@ void loop() {
     }
   }
 
-  if (!logoIsActive and car.getSecAfterStart() - SecAfterStartWhenLastCanMessageReceived > 5) {
+  if (!logoIsActive and car.getSecAfterStart() - secAfterStartWhenLastCanMessageReceived > canIsDisconnectTimeout) {
     lcd.setCursor(10, 1);
     lcd.print("(X)");
     digitalWrite(heaterKey1, LOW);
     digitalWrite(heaterKey2, LOW);
     digitalWrite(heaterKey3, LOW);
   }
+}
+
+bool isAllNecessaryDataReceived() {
+  return car.getCoolantTemp() != startValue
+      && car.getOutdoorTemp() != startValue
+      && car.getBatteryVoltage() != startValue
+      && car.getClimateFanSpeed() != startValue
+      && car.getClimateLeftTemp() != startValue
+      && car.getClimateRightTemp() != startValue;
+}
+
+
+// TODO: make constant values constant variables, move constants to config.h file
+bool isCarReady() {
+  return car.getClimateFanSpeed() >= minClimateFanSpeed
+      && car.getBatteryVoltage() >= minBatteryVoltage
+      && car.getClimateLeftTemp() >= minClimateLeftTemp
+      && car.getClimateRightTemp() >= minClimateRightTemp;
+}
+
+bool isHeaterMustBeOn() {
+  return car.getOutdoorTemp() <= -20 && car.getCoolantTemp() < 65
+      || car.getOutdoorTemp() <= -10 && car.getCoolantTemp() < 60
+      || car.getOutdoorTemp() <=   0 && car.getCoolantTemp() < 55
+      || car.getOutdoorTemp() <=  10 && car.getCoolantTemp() < 50;
+}
+
+bool isHeaterMustBeOff() {
+  return car.getOutdoorTemp() <= -20 && car.getCoolantTemp() >= 80
+      || car.getOutdoorTemp() <= -10 && car.getCoolantTemp() >= 75
+      || car.getOutdoorTemp() <=   0 && car.getCoolantTemp() >= 70
+      || car.getOutdoorTemp() <=  10 && car.getCoolantTemp() >= 65;
+}
+
+bool isClimateInDefrostMode() {
+  return car.getBlowingWindshield() == true
+      && car.getClimateLeftTemp() > 16
+      && car.getClimateRightTemp() > 16
+      && car.getClimateFanSpeed() >= 3
+      && car.getRecyclingAir() == false;
 }
 
 String valueWithOffset(float value, bool isInt) {
@@ -329,4 +318,6 @@ String valueWithOffset(float value, bool isInt) {
   return offsetForValue + String(value);
 }
 
-uint32_t getSecAfterStart() { return millis() / 1000ul; }
+uint32_t getSecAfterStart() {
+  return millis() / 1000ul;
+}
