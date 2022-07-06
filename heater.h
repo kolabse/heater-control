@@ -6,14 +6,13 @@
 
 class Heater {
     public:
-        Heater(uint8_t heater_key_1, uint8_t heater_key_2, uint8_t heater_key_3);
+        Heater(uint8_t heater_key_1, uint8_t heater_key_2);
         void needToHeat(AllCars &car, bool needToHeat);
         uint8_t getHeatingIntensity();
 
     private:
         uint8_t _heater_key_1;
         uint8_t _heater_key_2;
-        uint8_t _heater_key_3;
         uint8_t _heatingIntensity;                        // Ступень работы дополнительного нагревателя
         bool _needToHeat;                                 // Необходимость в дополнительном нагреве
         uint32_t _secAfterStartWhenNeedToHeatIsTrue = 0;  // Время в секундах после того как появилась необходимость включения дополнительного нагрева

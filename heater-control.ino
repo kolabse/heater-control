@@ -31,7 +31,7 @@ LiquidCrystal_I2C lcd(lcdI2CAddr, 16, 2); // (адрес - определен ч
 MCP2515 mcp2515(mcpScPin);
 
 // Электрический радиатор (Цепь силового ключа 1, Цепь силового ключа 2, Цепь силового ключа 3)
-Heater heater(heaterKey1, heaterKey2, heaterKey3);
+Heater heater(heaterKey1, heaterKey2);
 
 // Сообщение CAN шины
 struct can_frame canMsg;
@@ -258,7 +258,6 @@ void loop() {
     lcd.print("(X)");
     digitalWrite(heaterKey1, LOW);
     digitalWrite(heaterKey2, LOW);
-    digitalWrite(heaterKey3, LOW);
   }
 }
 

@@ -1,21 +1,18 @@
 #include <Arduino.h>
 #include "heater.h"
 
-Heater::Heater(uint8_t heater_key_1, uint8_t heater_key_2, uint8_t heater_key_3) {
+Heater::Heater(uint8_t heater_key_1, uint8_t heater_key_2) {
     _heater_key_1 = heater_key_1;
     _heater_key_2 = heater_key_2;
-    _heater_key_3 = heater_key_3;
     _heatingIntensity = 0;
     _needToHeat = false;
     // Устанавливаем контакты включения нагревателя в режим выхода
     pinMode(_heater_key_1, OUTPUT);
     pinMode(_heater_key_2, OUTPUT);
-    pinMode(_heater_key_3, OUTPUT);
 
     // Устанавливаем низкий уровень на выходах включения нагрева
     digitalWrite(_heater_key_1, LOW);
     digitalWrite(_heater_key_2, LOW);
-    digitalWrite(_heater_key_3, LOW);
 }
 
 void Heater::needToHeat(AllCars &car, bool needToHeat) {
@@ -59,26 +56,22 @@ void Heater::setHeatingIntensity(uint8_t intensity) {
     case 1:
         digitalWrite(_heater_key_1, HIGH);
         digitalWrite(_heater_key_2, LOW);
-        digitalWrite(_heater_key_3, LOW);
         _heatingIntensity = 1;
         break;
     case 2:
         digitalWrite(_heater_key_1, LOW);
         digitalWrite(_heater_key_2, HIGH);
-        digitalWrite(_heater_key_3, HIGH);
         _heatingIntensity = 2;
         break;
     case 3:
         digitalWrite(_heater_key_1, HIGH);
         digitalWrite(_heater_key_2, HIGH);
-        digitalWrite(_heater_key_3, HIGH);
         _heatingIntensity = 3;
         break;
 
     default:
         digitalWrite(_heater_key_1, LOW);
         digitalWrite(_heater_key_2, LOW);
-        digitalWrite(_heater_key_3, LOW);
         _heatingIntensity = 0;
         break;
     }

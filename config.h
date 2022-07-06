@@ -6,7 +6,6 @@ const int heaterKey1    {4};          // Пин подключения реле 
 const int lcdSwitch     {5};          // Пин переключателя наличия LCD дисплея
 const int heaterSwitch  {6};          // Пин переключателя наличия нагревателя
 const int heaterKey2    {7};          // Пин подключения реле нагревателя №2
-const int heaterKey3    {8};          // Пин подключения реле нагревателя №3
 const int debugSwitch   {9};          // Пин переключателя включения режима отправки отладочной информации в COM-порт
 const int mcpScPin      {10};
 const int lcdI2CAddr    {0x3F};
