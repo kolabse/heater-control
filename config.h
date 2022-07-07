@@ -38,6 +38,10 @@ double minBatteryVoltage {13.5};
 uint8_t minClimateFanSpeed {3};
 uint8_t minClimateLeftTemp {5};
 uint8_t minClimateRightTemp {5};
-
+uint8_t minClimateLeftTempWhenDefrost {16};
+uint8_t minClimateRightTempWhenDefrost {16};
+int8_t outdoorTempValues[] {-20, -10, 0, 10};
+uint8_t coolantTempValuesToOff[] {80, 75, 70, 65};
+uint8_t coolantTempValuesToOn[] {65, 60, 55, 50};
 
 #endif
