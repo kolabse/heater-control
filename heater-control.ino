@@ -48,18 +48,19 @@ void setup() {
   HeaterEnabled = !digitalRead(heaterSwitch);
   DebugMode = !digitalRead(debugSwitch);
 
-  // Инициализация дисплея
-  lcd.begin();
+  if(LCDEnabled){
+    // Инициализация дисплея
+    lcd.begin();
 
-  // включение подсвеки
-  lcd.backlight();
+    // включение подсвеки
+    lcd.backlight();
 
-  // вывод экрана приветствия
-  lcd.setCursor(1, 0);
-  lcd.print("Heat controller");
-  lcd.setCursor(0, 1);
-  lcd.print("v0.04b loading...");
-
+    // вывод экрана приветствия
+    lcd.setCursor(1, 0);
+    lcd.print("Heat controller");
+    lcd.setCursor(0, 1);
+    lcd.print("v0.04b loading...");
+  }
   // Устанавливаем частоту аппаратного прерывания с частотой 0.20 Hz (1 раз в 5 секунд) для таймера 1
   Timer1.setFrequencyFloat(systemCheckFrequency);
   // Запускаем таймер 1 аппаратного прерывания на канале "A" (порт D9)
@@ -126,7 +127,7 @@ void loop() {
 
   car.setSecAfterStart(getSecAfterStart());
 
-  if (logoIsActive and car.getSecAfterStart() > startlogoActiveSec) {
+  if (logoIsActive and car.getSecAfterStart() > startlogoActiveSec and LCDEnabled) {
     logoIsActive = false;
     lcd.clear();
   }
@@ -134,7 +135,7 @@ void loop() {
   if (mcp2515.readMessage(&canMsg) == MCP2515::ERROR_OK) {
 
     secAfterStartWhenLastCanMessageReceived = car.getSecAfterStart();
-    if (!logoIsActive) {
+    if (!logoIsActive and LCDEnabled) {
       lcd.setCursor(10, 1);
       lcd.print("(V)");
     }
@@ -214,7 +215,7 @@ void loop() {
     }
   }
 
-  if (car.getSecAfterStart() - secAfterStartWhenLcdLastUpdate > lcdUpdateIntervalSec) {
+  if (car.getSecAfterStart() - secAfterStartWhenLcdLastUpdate > lcdUpdateIntervalSec and LCDEnabled) {
 
     secAfterStartWhenLcdLastUpdate = car.getSecAfterStart();
 
@@ -253,52 +254,52 @@ void loop() {
     }
   }
 
-  if (!logoIsActive and car.getSecAfterStart() - secAfterStartWhenLastCanMessageReceived > canIsDisconnectTimeout) {
-    lcd.setCursor(10, 1);
-    lcd.print("(X)");
+  if (car.getSecAfterStart() - secAfterStartWhenLastCanMessageReceived > canIsDisconnectTimeout) {
+    if(!logoIsActive and LCDEnabled) {
+      lcd.setCursor(10, 1);
+      lcd.print("(X)");
+    }
     digitalWrite(heaterKey1, LOW);
     digitalWrite(heaterKey2, LOW);
   }
 }
 
 bool isAllNecessaryDataReceived() {
-  return car.getCoolantTemp() != startValue
-      && car.getOutdoorTemp() != startValue
-      && car.getBatteryVoltage() != startValue
-      && car.getClimateFanSpeed() != startValue
-      && car.getClimateLeftTemp() != startValue
+  return car.getCoolantTemp()      != startValue
+      && car.getOutdoorTemp()      != startValue
+      && car.getBatteryVoltage()   != startValue
+      && car.getClimateFanSpeed()  != startValue
+      && car.getClimateLeftTemp()  != startValue
       && car.getClimateRightTemp() != startValue;
 }
 
-
-// TODO: make constant values constant variables, move constants to config.h file
 bool isCarReady() {
-  return car.getClimateFanSpeed() >= minClimateFanSpeed
-      && car.getBatteryVoltage() >= minBatteryVoltage
-      && car.getClimateLeftTemp() >= minClimateLeftTemp
+  return car.getClimateFanSpeed()  >= minClimateFanSpeed
+      && car.getBatteryVoltage()   >= minBatteryVoltage
+      && car.getClimateLeftTemp()  >= minClimateLeftTemp
       && car.getClimateRightTemp() >= minClimateRightTemp;
 }
 
 bool isHeaterMustBeOn() {
-  return car.getOutdoorTemp() <= -20 && car.getCoolantTemp() < 65
-      || car.getOutdoorTemp() <= -10 && car.getCoolantTemp() < 60
-      || car.getOutdoorTemp() <=   0 && car.getCoolantTemp() < 55
-      || car.getOutdoorTemp() <=  10 && car.getCoolantTemp() < 50;
+  return car.getOutdoorTemp() <= outdoorTempValues[0] && car.getCoolantTemp() < coolantTempValuesToOn[0]
+      || car.getOutdoorTemp() <= outdoorTempValues[1] && car.getCoolantTemp() < coolantTempValuesToOn[1]
+      || car.getOutdoorTemp() <= outdoorTempValues[2] && car.getCoolantTemp() < coolantTempValuesToOn[2]
+      || car.getOutdoorTemp() <= outdoorTempValues[3] && car.getCoolantTemp() < coolantTempValuesToOn[3];
 }
 
 bool isHeaterMustBeOff() {
-  return car.getOutdoorTemp() <= -20 && car.getCoolantTemp() >= 80
-      || car.getOutdoorTemp() <= -10 && car.getCoolantTemp() >= 75
-      || car.getOutdoorTemp() <=   0 && car.getCoolantTemp() >= 70
-      || car.getOutdoorTemp() <=  10 && car.getCoolantTemp() >= 65;
+  return car.getOutdoorTemp() <= outdoorTempValues[0] && car.getCoolantTemp() >= coolantTempValuesToOff[0]
+      || car.getOutdoorTemp() <= outdoorTempValues[1] && car.getCoolantTemp() >= coolantTempValuesToOff[1]
+      || car.getOutdoorTemp() <= outdoorTempValues[2] && car.getCoolantTemp() >= coolantTempValuesToOff[2]
+      || car.getOutdoorTemp() <= outdoorTempValues[3] && car.getCoolantTemp() >= coolantTempValuesToOff[3];
 }
 
 bool isClimateInDefrostMode() {
   return car.getBlowingWindshield() == true
-      && car.getClimateLeftTemp() > 16
-      && car.getClimateRightTemp() > 16
-      && car.getClimateFanSpeed() >= 3
-      && car.getRecyclingAir() == false;
+      && car.getClimateLeftTemp()   > minClimateLeftTempWhenDefrost
+      && car.getClimateRightTemp()  > minClimateRightTempWhenDefrost
+      && car.getClimateFanSpeed()   >= minClimateFanSpeed
+      && car.getRecyclingAir()      == false;
 }
 
 String valueWithOffset(float value, bool isInt) {
