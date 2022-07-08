@@ -8,6 +8,7 @@ class Heater {
     public:
         Heater(uint8_t heater_key_1, uint8_t heater_key_2);
         void needToHeat(AllCars &car, bool needToHeat);
+        void needToHeat(AllCars &car);
         void emergencyStop();
         uint8_t getHeatingIntensity();
 

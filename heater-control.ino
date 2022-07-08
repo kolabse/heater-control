@@ -86,6 +86,8 @@ void setup() {
 
 ISR(TIMER1_A) {
 
+  // TODO: move all heater logic and methods to heater lib
+
   // Проверяем достаточно ли прошло времени с момента запуска двигателя
   if (car.getSecAfterStart() > secAfterStartBeforeHeaterEnabled) {
     // Запускаем функции обработки значений полученных из шины
