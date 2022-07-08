@@ -76,3 +76,9 @@ void Heater::setHeatingIntensity(uint8_t intensity) {
         break;
     }
 }
+
+void Heater::emergencyStop(){
+    digitalWrite(_heater_key_1, LOW);
+    digitalWrite(_heater_key_2, LOW);
+    _heatingIntensity = 0;
+}

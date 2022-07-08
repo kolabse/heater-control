@@ -259,8 +259,7 @@ void loop() {
       lcd.setCursor(10, 1);
       lcd.print("(X)");
     }
-    digitalWrite(heaterKey1, LOW);
-    digitalWrite(heaterKey2, LOW);
+    heater.emergencyStop();
   }
 }
 
