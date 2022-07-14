@@ -15,37 +15,55 @@ Heater::Heater(uint8_t heater_key_1, uint8_t heater_key_2) {
     digitalWrite(_heater_key_2, LOW);
 }
 
-void Heater::needToHeat(AllCars &car, bool needToHeat) {
-    if (_needToHeat != needToHeat) {
+void Heater::heaterControl(AllCars &car) {
+    // Проверяем достаточно ли прошло времени с момента запуска двигателя
+    // Проверяем полученны ли все необходимые данные
+    if (car.getSecAfterStart() > secAfterStartBeforeHeaterEnabled and isAllNecessaryDataReceived(car)) {
+        if (isCarReady(car)) {
+            // Если подогрев выключен, проверяем не находимся ли мы в условиях подходящих для включения
+            if (_heater_state == _heater_state_idle && isHeaterMustBeOn(car)) {
+                needToHeat = true;
+            // Если подогрев включен, проверяем не находимся ли мы в условиях подходящих для отключения
+            } else if (_heater_state == _heater_state_heat  && isHeaterMustBeOff(car)) {
+                needToHeat = false;
+            }
+        } else if (needToHeat == false && isClimateInDefrostMode(car)) {
+            needToHeat = true;
+        } else {
+            needToHeat = false;
+        }
+
+        if (_needToHeat != needToHeat) {
+            if (_needToHeat) {
+                _secAfterStartWhenNeedToHeatIsTrue = car.getSecAfterStart();
+            } else {
+                _secAfterStartWhenNeedToHeatIsFalse = car.getSecAfterStart();
+            }
+            _needToHeat = needToHeat;
+        }
         if (_needToHeat) {
-            _secAfterStartWhenNeedToHeatIsTrue = car.getSecAfterStart();
+            _heater_state = _heater_state_heat;
+            _secAfterNeedToHeatIsTrue = car.getSecAfterStart() - _secAfterStartWhenNeedToHeatIsTrue;
+            if (_secAfterNeedToHeatIsTrue <= 10) {
+                setHeatingIntensity(_300W);
+            } else if (_secAfterNeedToHeatIsTrue > 10 and _secAfterNeedToHeatIsTrue <= 20) {
+                setHeatingIntensity(_600W);
+            } else {
+                setHeatingIntensity(_900W);
+            }
         } else {
-            _secAfterStartWhenNeedToHeatIsFalse = car.getSecAfterStart();
-        }
-        _needToHeat = needToHeat;
-    }
-    if (_needToHeat) {
-        _secAfterNeedToHeatIsTrue = car.getSecAfterStart() - _secAfterStartWhenNeedToHeatIsTrue;
-        if (_secAfterNeedToHeatIsTrue <= 10) {
-            setHeatingIntensity(_300W);
-        } else if (_secAfterNeedToHeatIsTrue > 10 and _secAfterNeedToHeatIsTrue <= 20) {
-            setHeatingIntensity(_600W);
-        } else {
-            setHeatingIntensity(_900W);
-        }
-    } else {
-        _secAfterNeedToHeatIsFalse = car.getSecAfterStart() - _secAfterStartWhenNeedToHeatIsFalse;
-        if (_secAfterNeedToHeatIsFalse <= 10) {
-            setHeatingIntensity(_600W);
-        } else if (_secAfterNeedToHeatIsFalse > 10 and _secAfterNeedToHeatIsFalse <= 20) {
-            setHeatingIntensity(_300W);
-        } else {
-            setHeatingIntensity(_000W);
+            _secAfterNeedToHeatIsFalse = car.getSecAfterStart() - _secAfterStartWhenNeedToHeatIsFalse;
+            if (_secAfterNeedToHeatIsFalse <= 10) {
+                setHeatingIntensity(_600W);
+            } else if (_secAfterNeedToHeatIsFalse > 10 and _secAfterNeedToHeatIsFalse <= 20) {
+                setHeatingIntensity(_300W);
+            } else {
+                setHeatingIntensity(_000W);
+                _heater_state = _heater_state_idle;
+            }
         }
     }
 }
-
-
 
 uint8_t Heater::getHeatingIntensity() { return _heatingIntensity; }
 
@@ -81,4 +99,42 @@ void Heater::emergencyStop(){
     digitalWrite(_heater_key_1, LOW);
     digitalWrite(_heater_key_2, LOW);
     _heatingIntensity = 0;
+}
+
+bool Heater::isAllNecessaryDataReceived(AllCars &car) {
+  return car.getCoolantTemp()      != startValue
+      && car.getOutdoorTemp()      != startValue
+      && car.getBatteryVoltage()   != startValue
+      && car.getClimateFanSpeed()  != startValue
+      && car.getClimateLeftTemp()  != startValue
+      && car.getClimateRightTemp() != startValue;
+}
+
+bool Heater::isCarReady(AllCars &car) {
+  return car.getClimateFanSpeed()  >= minClimateFanSpeed
+      && car.getBatteryVoltage()   >= minBatteryVoltage
+      && car.getClimateLeftTemp()  >= minClimateLeftTemp
+      && car.getClimateRightTemp() >= minClimateRightTemp;
+}
+
+bool Heater::isHeaterMustBeOn(AllCars &car) {
+  return car.getOutdoorTemp() <= outdoorTempValues[0] && car.getCoolantTemp() < coolantTempValuesToOn[0]
+      || car.getOutdoorTemp() <= outdoorTempValues[1] && car.getCoolantTemp() < coolantTempValuesToOn[1]
+      || car.getOutdoorTemp() <= outdoorTempValues[2] && car.getCoolantTemp() < coolantTempValuesToOn[2]
+      || car.getOutdoorTemp() <= outdoorTempValues[3] && car.getCoolantTemp() < coolantTempValuesToOn[3];
+}
+
+bool Heater::isHeaterMustBeOff(AllCars &car) {
+  return car.getOutdoorTemp() <= outdoorTempValues[0] && car.getCoolantTemp() >= coolantTempValuesToOff[0]
+      || car.getOutdoorTemp() <= outdoorTempValues[1] && car.getCoolantTemp() >= coolantTempValuesToOff[1]
+      || car.getOutdoorTemp() <= outdoorTempValues[2] && car.getCoolantTemp() >= coolantTempValuesToOff[2]
+      || car.getOutdoorTemp() <= outdoorTempValues[3] && car.getCoolantTemp() >= coolantTempValuesToOff[3];
+}
+
+bool Heater::isClimateInDefrostMode(AllCars &car) {
+  return car.getBlowingWindshield() == true
+      && car.getClimateLeftTemp()   > minClimateLeftTempWhenDefrost
+      && car.getClimateRightTemp()  > minClimateRightTempWhenDefrost
+      && car.getClimateFanSpeed()   >= minClimateFanSpeed
+      && car.getRecyclingAir()      == false;
 }

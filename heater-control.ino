@@ -15,6 +15,7 @@
 #define CAR_TYPE 1
 
 // Подключение необходимых библиотек
+#include "config.h"
 #include <GyverTimers.h>
 #include <SPI.h>
 #include <mcp2515.h>
@@ -22,7 +23,6 @@
 #include <LiquidCrystal_I2C.h>
 #include <KolabseCarsCan.h>                   // https://github.com/kolabse/KolabseCarsCan
 #include "heater.h"
-#include "config.h"
 
 // LCD дисплей
 LiquidCrystal_I2C lcd(lcdI2CAddr, 16, 2); // (адрес - определен через i2c_scanner, размеры дисплея)
@@ -86,43 +86,8 @@ void setup() {
 
 ISR(TIMER1_A) {
 
-  // TODO: move all heater logic and methods to heater lib
+  heater.heaterControl(car);
 
-  // Проверяем достаточно ли прошло времени с момента запуска двигателя
-  if (car.getSecAfterStart() > secAfterStartBeforeHeaterEnabled) {
-    // Запускаем функции обработки значений полученных из шины
-    // Проверяем полученны ли все необходимые данные
-    if (isAllNecessaryDataReceived()) {
-      // Проверяем обязательные требования
-      if (isCarReady()) {
-        if (
-          // Если подогрев выключен, проверяем не находимся ли мы в условиях подходящих для включения
-          needToHeat == false
-          &&
-          (isHeaterMustBeOn())
-        ) {
-          needToHeat = true;
-        } else if (
-          // Если подогрев включен, проверяем не находимся ли мы в условиях подходящих для отключения
-          needToHeat
-          &&
-          (isHeaterMustBeOff())
-        ) {
-          needToHeat = false;
-        }
-      } else if (
-        needToHeat == false
-        &&
-        (isClimateInDefrostMode())
-      ) {
-        needToHeat = true;
-      } else {
-        needToHeat = false;
-      }
-      // Запускаем функции для определения необходимости управления нагревателем
-      heater.needToHeat(car, needToHeat);
-    }
-  }
 }
 
 void loop() {
@@ -263,44 +228,6 @@ void loop() {
     }
     heater.emergencyStop();
   }
-}
-
-bool isAllNecessaryDataReceived() {
-  return car.getCoolantTemp()      != startValue
-      && car.getOutdoorTemp()      != startValue
-      && car.getBatteryVoltage()   != startValue
-      && car.getClimateFanSpeed()  != startValue
-      && car.getClimateLeftTemp()  != startValue
-      && car.getClimateRightTemp() != startValue;
-}
-
-bool isCarReady() {
-  return car.getClimateFanSpeed()  >= minClimateFanSpeed
-      && car.getBatteryVoltage()   >= minBatteryVoltage
-      && car.getClimateLeftTemp()  >= minClimateLeftTemp
-      && car.getClimateRightTemp() >= minClimateRightTemp;
-}
-
-bool isHeaterMustBeOn() {
-  return car.getOutdoorTemp() <= outdoorTempValues[0] && car.getCoolantTemp() < coolantTempValuesToOn[0]
-      || car.getOutdoorTemp() <= outdoorTempValues[1] && car.getCoolantTemp() < coolantTempValuesToOn[1]
-      || car.getOutdoorTemp() <= outdoorTempValues[2] && car.getCoolantTemp() < coolantTempValuesToOn[2]
-      || car.getOutdoorTemp() <= outdoorTempValues[3] && car.getCoolantTemp() < coolantTempValuesToOn[3];
-}
-
-bool isHeaterMustBeOff() {
-  return car.getOutdoorTemp() <= outdoorTempValues[0] && car.getCoolantTemp() >= coolantTempValuesToOff[0]
-      || car.getOutdoorTemp() <= outdoorTempValues[1] && car.getCoolantTemp() >= coolantTempValuesToOff[1]
-      || car.getOutdoorTemp() <= outdoorTempValues[2] && car.getCoolantTemp() >= coolantTempValuesToOff[2]
-      || car.getOutdoorTemp() <= outdoorTempValues[3] && car.getCoolantTemp() >= coolantTempValuesToOff[3];
-}
-
-bool isClimateInDefrostMode() {
-  return car.getBlowingWindshield() == true
-      && car.getClimateLeftTemp()   > minClimateLeftTempWhenDefrost
-      && car.getClimateRightTemp()  > minClimateRightTempWhenDefrost
-      && car.getClimateFanSpeed()   >= minClimateFanSpeed
-      && car.getRecyclingAir()      == false;
 }
 
 String valueWithOffset(float value, bool isInt) {
