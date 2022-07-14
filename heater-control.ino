@@ -24,6 +24,7 @@
 #include "heater.h"
 #include "config.h"
 
+HeaterConfig heaterConfig;
 
 // LCD дисплей
 LiquidCrystal_I2C lcd(heaterConfig.lcdI2CAddr, 16, 2); // (адрес - определен через i2c_scanner, размеры дисплея)
