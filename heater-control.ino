@@ -24,7 +24,6 @@
 #include "heater.h"
 #include "config.h"
 
-HeaterConfig heaterConfig;
 
 // LCD дисплей
 LiquidCrystal_I2C lcd(heaterConfig.lcdI2CAddr, 16, 2); // (адрес - определен через i2c_scanner, размеры дисплея)
@@ -61,7 +60,7 @@ void setup() {
     lcd.setCursor(1, 0);
     lcd.print("Heat controller");
     lcd.setCursor(0, 1);
-    lcd.print("v0.04b loading...");
+    lcd.print("v0.09b loading...");
   }
   // Устанавливаем частоту аппаратного прерывания с частотой 0.20 Hz (1 раз в 5 секунд) для таймера 1
   Timer1.setFrequencyFloat(heaterConfig.systemCheckFrequency);
