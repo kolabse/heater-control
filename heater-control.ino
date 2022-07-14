@@ -15,7 +15,6 @@
 #define CAR_TYPE 1
 
 // Подключение необходимых библиотек
-#include "config.h"
 #include <GyverTimers.h>
 #include <SPI.h>
 #include <mcp2515.h>
