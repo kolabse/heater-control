@@ -26,28 +26,28 @@
 
 HeaterControlConfig heaterControlConfig;
 
-const int lcdI2CAddr    {heaterControlConfig.lcdI2CAddr};
-const int mcpScPin      {heaterControlConfig.mcpScPin};
-const int heaterKey1    {heaterControlConfig.heaterKey1};
-const int heaterKey2    {heaterControlConfig.heaterKey2};
-const int lcdSwitch     {heaterControlConfig.lcdSwitch};
-const int heaterSwitch  {heaterControlConfig.heaterSwitch};
-const int debugSwitch   {heaterControlConfig.debugSwitch};
+const int lcdI2CAddr    {heaterControlConfig.getLcdI2CAddr()};
+const int mcpScPin      {heaterControlConfig.getMcpScPin()};
+const int heaterKey1    {heaterControlConfig.getHeaterKey1()};
+const int heaterKey2    {heaterControlConfig.getHeaterKey2()};
+const int lcdSwitch     {heaterControlConfig.getLcdSwitch()};
+const int heaterSwitch  {heaterControlConfig.getHeaterSwitch()};
+const int debugSwitch   {heaterControlConfig.getDebugSwitch()};
 
-bool logoIsActive       {heaterControlConfig.logoIsActive};                                       // Заставка активна
-bool LCDEnabled         {heaterControlConfig.LCDEnabled};
-bool HeaterEnabled      {heaterControlConfig.HeaterEnabled};
-bool DebugMode          {heaterControlConfig.DebugMode};
+bool logoIsActive       {heaterControlConfig.getLogoIsActive()};
+bool LCDEnabled         {heaterControlConfig.getLCDEnabled()};
+bool HeaterEnabled      {heaterControlConfig.getHeaterEnabled()};
+bool DebugMode          {heaterControlConfig.getDebugMode()};
 
-double systemCheckFrequency                       {heaterControlConfig.systemCheckFrequency};
-uint32_t serialBaudRate                           {heaterControlConfig.serialBaudRate};
-uint8_t startlogoActiveSec                        {heaterControlConfig.startlogoActiveSec};
-uint8_t lcdUpdateIntervalSec                      {heaterControlConfig.lcdUpdateIntervalSec};
-uint8_t canIsDisconnectTimeout                    {heaterControlConfig.canIsDisconnectTimeout};
-uint32_t secAfterStartWhenLcdLastUpdate           {heaterControlConfig.secAfterStartWhenLcdLastUpdate};
-uint32_t secAfterStartWhenLastCanMessageReceived  {heaterControlConfig.secAfterStartWhenLastCanMessageReceived};
+double systemCheckFrequency                       {heaterControlConfig.getSystemCheckFrequency()};
+uint32_t serialBaudRate                           {heaterControlConfig.getSerialBaudRate()};
+uint8_t startlogoActiveSec                        {heaterControlConfig.getStartlogoActiveSec()};
+uint8_t lcdUpdateIntervalSec                      {heaterControlConfig.getLcdUpdateIntervalSec()};
+uint8_t canIsDisconnectTimeout                    {heaterControlConfig.getCanIsDisconnectTimeout()};
+uint32_t secAfterStartWhenLcdLastUpdate           {heaterControlConfig.getSecAfterStartWhenLcdLastUpdate()};
+uint32_t secAfterStartWhenLastCanMessageReceived  {heaterControlConfig.getSecAfterStartWhenLastCanMessageReceived()};
 
-const int startValue    {heaterControlConfig.startValue};
+const int startValue    {heaterControlConfig.getStartValue()};
 
 // LCD дисплей
 LiquidCrystal_I2C lcd(lcdI2CAddr, 16, 2); // (адрес - определен через i2c_scanner, размеры дисплея)
@@ -55,7 +55,7 @@ LiquidCrystal_I2C lcd(lcdI2CAddr, 16, 2); // (адрес - определен ч
 // CAN модуль
 MCP2515 mcp2515(mcpScPin);
 
-// Электрический радиатор (Цепь силового ключа 1, Цепь силового ключа 2, Цепь силового ключа 3)
+// Электрический радиатор (Цепь силового ключа 1, Цепь силового ключа 2)
 Heater heater(heaterKey1, heaterKey2);
 
 // Сообщение CAN шины

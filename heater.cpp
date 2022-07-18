@@ -18,28 +18,28 @@ Heater::Heater(uint8_t heater_key_1, uint8_t heater_key_2) {
 void Heater::heaterControl(AllCars &car) {
     // Проверяем достаточно ли прошло времени с момента запуска двигателя
     // Проверяем полученны ли все необходимые данные
-    if (car.getSecAfterStart() > heaterConfig.secAfterStartBeforeHeaterEnabled and isAllNecessaryDataReceived(car)) {
+    if (car.getSecAfterStart() > heaterConfig.getSecAfterStartBeforeHeaterEnabled() and isAllNecessaryDataReceived(car)) {
         if (isCarReady(car)) {
             // Если подогрев выключен, проверяем не находимся ли мы в условиях подходящих для включения
             if (_heater_state == _heater_state_idle && isHeaterMustBeOn(car)) {
-                heaterConfig.needToHeat = true;
+                heaterConfig.setNeedToHeat(true);
             // Если подогрев включен, проверяем не находимся ли мы в условиях подходящих для отключения
             } else if (_heater_state == _heater_state_heat  && isHeaterMustBeOff(car)) {
-                heaterConfig.needToHeat = false;
+                heaterConfig.setNeedToHeat(false);
             }
-        } else if (heaterConfig.needToHeat == false && isClimateInDefrostMode(car)) {
-            heaterConfig.needToHeat = true;
+        } else if (heaterConfig.getNeedToHeat() == false && isClimateInDefrostMode(car)) {
+            heaterConfig.setNeedToHeat(true);
         } else {
-            heaterConfig.needToHeat = false;
+            heaterConfig.setNeedToHeat(false);
         }
 
-        if (_needToHeat != heaterConfig.needToHeat) {
+        if (_needToHeat != heaterConfig.getNeedToHeat()) {
             if (_needToHeat) {
                 _secAfterStartWhenNeedToHeatIsTrue = car.getSecAfterStart();
             } else {
                 _secAfterStartWhenNeedToHeatIsFalse = car.getSecAfterStart();
             }
-            _needToHeat = heaterConfig.needToHeat;
+            _needToHeat = heaterConfig.getNeedToHeat();
         }
         if (_needToHeat) {
             _heater_state = _heater_state_heat;
@@ -102,39 +102,39 @@ void Heater::emergencyStop(){
 }
 
 bool Heater::isAllNecessaryDataReceived(AllCars &car) {
-  return car.getCoolantTemp()      != heaterConfig.startValue
-      && car.getOutdoorTemp()      != heaterConfig.startValue
-      && car.getBatteryVoltage()   != heaterConfig.startValue
-      && car.getClimateFanSpeed()  != heaterConfig.startValue
-      && car.getClimateLeftTemp()  != heaterConfig.startValue
-      && car.getClimateRightTemp() != heaterConfig.startValue;
+  return car.getCoolantTemp()      != heaterConfig.getStartValue()
+      && car.getOutdoorTemp()      != heaterConfig.getStartValue()
+      && car.getBatteryVoltage()   != heaterConfig.getStartValue()
+      && car.getClimateFanSpeed()  != heaterConfig.getStartValue()
+      && car.getClimateLeftTemp()  != heaterConfig.getStartValue()
+      && car.getClimateRightTemp() != heaterConfig.getStartValue();
 }
 
 bool Heater::isCarReady(AllCars &car) {
-  return car.getClimateFanSpeed()  >= heaterConfig.minClimateFanSpeed
-      && car.getBatteryVoltage()   >= heaterConfig.minBatteryVoltage
-      && car.getClimateLeftTemp()  >= heaterConfig.minClimateLeftTemp
-      && car.getClimateRightTemp() >= heaterConfig.minClimateRightTemp;
+  return car.getClimateFanSpeed()  >= heaterConfig.getMinClimateFanSpeed()
+      && car.getBatteryVoltage()   >= heaterConfig.getMinBatteryVoltage()
+      && car.getClimateLeftTemp()  >= heaterConfig.getMinClimateLeftTemp()
+      && car.getClimateRightTemp() >= heaterConfig.getMinClimateRightTemp();
 }
 
 bool Heater::isHeaterMustBeOn(AllCars &car) {
-  return car.getOutdoorTemp() <= heaterConfig.outdoorTempValues[0] && car.getCoolantTemp() < heaterConfig.coolantTempValuesToOn[0]
-      || car.getOutdoorTemp() <= heaterConfig.outdoorTempValues[1] && car.getCoolantTemp() < heaterConfig.coolantTempValuesToOn[1]
-      || car.getOutdoorTemp() <= heaterConfig.outdoorTempValues[2] && car.getCoolantTemp() < heaterConfig.coolantTempValuesToOn[2]
-      || car.getOutdoorTemp() <= heaterConfig.outdoorTempValues[3] && car.getCoolantTemp() < heaterConfig.coolantTempValuesToOn[3];
+  return car.getOutdoorTemp() <= heaterConfig.getOutdoorTempValues()[0] && car.getCoolantTemp() < heaterConfig.getCoolantTempValuesToOn()[0]
+      || car.getOutdoorTemp() <= heaterConfig.getOutdoorTempValues()[1] && car.getCoolantTemp() < heaterConfig.getCoolantTempValuesToOn()[1]
+      || car.getOutdoorTemp() <= heaterConfig.getOutdoorTempValues()[2] && car.getCoolantTemp() < heaterConfig.getCoolantTempValuesToOn()[2]
+      || car.getOutdoorTemp() <= heaterConfig.getOutdoorTempValues()[3] && car.getCoolantTemp() < heaterConfig.getCoolantTempValuesToOn()[3];
 }
 
 bool Heater::isHeaterMustBeOff(AllCars &car) {
-  return car.getOutdoorTemp() <= heaterConfig.outdoorTempValues[0] && car.getCoolantTemp() >= heaterConfig.coolantTempValuesToOff[0]
-      || car.getOutdoorTemp() <= heaterConfig.outdoorTempValues[1] && car.getCoolantTemp() >= heaterConfig.coolantTempValuesToOff[1]
-      || car.getOutdoorTemp() <= heaterConfig.outdoorTempValues[2] && car.getCoolantTemp() >= heaterConfig.coolantTempValuesToOff[2]
-      || car.getOutdoorTemp() <= heaterConfig.outdoorTempValues[3] && car.getCoolantTemp() >= heaterConfig.coolantTempValuesToOff[3];
+  return car.getOutdoorTemp() <= heaterConfig.getOutdoorTempValues()[0] && car.getCoolantTemp() >= heaterConfig.getCoolantTempValuesToOff()[0]
+      || car.getOutdoorTemp() <= heaterConfig.getOutdoorTempValues()[1] && car.getCoolantTemp() >= heaterConfig.getCoolantTempValuesToOff()[1]
+      || car.getOutdoorTemp() <= heaterConfig.getOutdoorTempValues()[2] && car.getCoolantTemp() >= heaterConfig.getCoolantTempValuesToOff()[2]
+      || car.getOutdoorTemp() <= heaterConfig.getOutdoorTempValues()[3] && car.getCoolantTemp() >= heaterConfig.getCoolantTempValuesToOff()[3];
 }
 
 bool Heater::isClimateInDefrostMode(AllCars &car) {
   return car.getBlowingWindshield() == true
-      && car.getClimateLeftTemp()   > heaterConfig.minClimateLeftTempWhenDefrost
-      && car.getClimateRightTemp()  > heaterConfig.minClimateRightTempWhenDefrost
-      && car.getClimateFanSpeed()   >= heaterConfig.minClimateFanSpeed
+      && car.getClimateLeftTemp()   > heaterConfig.getMinClimateLeftTempWhenDefrost()
+      && car.getClimateRightTemp()  > heaterConfig.getMinClimateRightTempWhenDefrost()
+      && car.getClimateFanSpeed()   >= heaterConfig.getMinClimateFanSpeed()
       && car.getRecyclingAir()      == false;
 }
