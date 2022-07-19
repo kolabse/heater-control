@@ -43,3 +43,5 @@ uint8_t HeaterConfig::getMinClimateRightTempWhenDefrost() { return _minClimateRi
 uint8_t* HeaterConfig::getCoolantTempValuesToOff() { return _coolantTempValuesToOff; }
 uint8_t* HeaterConfig::getCoolantTempValuesToOn() { return _coolantTempValuesToOn; }
 int8_t* HeaterConfig::getOutdoorTempValues() { return _outdoorTempValues; }
+
+HeaterConfig heaterConfig = HeaterConfig();

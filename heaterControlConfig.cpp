@@ -76,3 +76,5 @@ bool HeaterControlConfig::getLogoIsActive() {return _logoIsActive; }
 bool HeaterControlConfig::getLCDEnabled() {return _LCDEnabled; }
 bool HeaterControlConfig::getHeaterEnabled() {return _heaterEnabled; }
 bool HeaterControlConfig::getDebugMode() {return _debugMode; }
+
+HeaterControlConfig heaterControlConfig = HeaterControlConfig();

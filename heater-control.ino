@@ -24,8 +24,6 @@
 #include "heater.h"
 #include "heaterControlConfig.h"
 
-HeaterControlConfig heaterControlConfig;
-
 const int lcdI2CAddr    {heaterControlConfig.getLcdI2CAddr()};
 const int mcpScPin      {heaterControlConfig.getMcpScPin()};
 const int heaterKey1    {heaterControlConfig.getHeaterKey1()};

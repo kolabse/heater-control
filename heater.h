@@ -11,8 +11,6 @@ class Heater {
         void heaterControl(AllCars &car);
         void emergencyStop();
         uint8_t getHeatingIntensity();
-        // Класс конфигурации
-        HeaterConfig heaterConfig;
 
     private:
         uint8_t _heater_key_1;
