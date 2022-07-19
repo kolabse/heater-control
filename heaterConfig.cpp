@@ -11,24 +11,21 @@ void HeaterConfig::setMinClimateLeftTempWhenDefrost(uint8_t minClimateLeftTempWh
 void HeaterConfig::setMinClimateRightTempWhenDefrost(uint8_t minClimateRightTempWhenDefrost) { _minClimateRightTempWhenDefrost = minClimateRightTempWhenDefrost; }
 
 void HeaterConfig::setCoolantTempValuesToOff(uint8_t CoolantTempValuesToOff[4]) {
-    _coolantTempValuesToOff[0] = CoolantTempValuesToOff[0];
-    _coolantTempValuesToOff[1] = CoolantTempValuesToOff[1];
-    _coolantTempValuesToOff[2] = CoolantTempValuesToOff[2];
-    _coolantTempValuesToOff[3] = CoolantTempValuesToOff[3];
+    for (int i = 0; i < 4; ++i) {
+        _coolantTempValuesToOff[i] = CoolantTempValuesToOff[i];
+    }
 }
 
 void HeaterConfig::setCoolantTempValuesToOn(uint8_t CoolantTempValuesToOn[4]) {
-    _coolantTempValuesToOn[0] = CoolantTempValuesToOn[0];
-    _coolantTempValuesToOn[1] = CoolantTempValuesToOn[1];
-    _coolantTempValuesToOn[2] = CoolantTempValuesToOn[2];
-    _coolantTempValuesToOn[3] = CoolantTempValuesToOn[3];
+    for (int i = 0; i < 4; ++i) {
+        _coolantTempValuesToOn[i] = CoolantTempValuesToOn[i];
+    }
 }
 
 void HeaterConfig::setOutdoorTempValues(int8_t outdoorTempValues[4]) {
-    _outdoorTempValues[0] = outdoorTempValues[0];
-    _outdoorTempValues[1] = outdoorTempValues[1];
-    _outdoorTempValues[2] = outdoorTempValues[2];
-    _outdoorTempValues[3] = outdoorTempValues[3];
+    for (int i = 0; i < 4; ++i) {
+        _outdoorTempValues[i] = outdoorTempValues[i];
+    }
 }
 
 bool HeaterConfig::getNeedToHeat() { return _needToHeat; }
