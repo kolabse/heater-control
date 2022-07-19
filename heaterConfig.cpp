@@ -10,15 +10,15 @@ void HeaterConfig::setMinClimateRightTemp(uint8_t minClimateRightTemp) { _minCli
 void HeaterConfig::setMinClimateLeftTempWhenDefrost(uint8_t minClimateLeftTempWhenDefrost) { _minClimateLeftTempWhenDefrost = minClimateLeftTempWhenDefrost; }
 void HeaterConfig::setMinClimateRightTempWhenDefrost(uint8_t minClimateRightTempWhenDefrost) { _minClimateRightTempWhenDefrost = minClimateRightTempWhenDefrost; }
 
-void HeaterConfig::setCoolantTempValuesToOff(uint8_t CoolantTempValuesToOff[4]) {
+void HeaterConfig::setCoolantTempValuesToOff(uint8_t coolantTempValuesToOff[4]) {
     for (int i = 0; i < 4; ++i) {
-        _coolantTempValuesToOff[i] = CoolantTempValuesToOff[i];
+        _coolantTempValuesToOff[i] = coolantTempValuesToOff[i];
     }
 }
 
-void HeaterConfig::setCoolantTempValuesToOn(uint8_t CoolantTempValuesToOn[4]) {
+void HeaterConfig::setCoolantTempValuesToOn(uint8_t coolantTempValuesToOn[4]) {
     for (int i = 0; i < 4; ++i) {
-        _coolantTempValuesToOn[i] = CoolantTempValuesToOn[i];
+        _coolantTempValuesToOn[i] = coolantTempValuesToOn[i];
     }
 }
 

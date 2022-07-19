@@ -21,9 +21,9 @@ class HeaterConfig {
         // Минимальная температура правой зоны климатической установки в режиме обдува ветрового стекла для разрешения включения нагревателя
         void setMinClimateRightTempWhenDefrost(uint8_t minClimateRightTempWhenDefrost);
         // Таблица значений температуры охлаждающей жидкости для отключения нагрева
-        void setCoolantTempValuesToOff(uint8_t CoolantTempValuesToOff[4]);
+        void setCoolantTempValuesToOff(uint8_t coolantTempValuesToOff[4]);
         // Таблица значений температуры охлаждающей жидкости для включения нагрева
-        void setCoolantTempValuesToOn(uint8_t CoolantTempValuesToOn[4]);
+        void setCoolantTempValuesToOn(uint8_t coolantTempValuesToOn[4]);
         // Таблица значений температуры наружного воздуха для отключения нагрева
         void setOutdoorTempValues(int8_t outdoorTempValues[4]);
 
